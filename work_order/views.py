@@ -8,17 +8,22 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from pure_pagination.mixins import PaginationMixin
 import  datetime
 
-
+import traceback, logging
+from django.core.mail import send_mail
 # 自定义模块导入
-from .models import WorkOrder
+from .models import WorkOrder,WorkOrder_Replay
 from .forms import WorkOrderApplyForm,WorkOrderResultForm
 from django.conf import settings
 
+#task
+from .tasks import hello,task_send_mail
 
+logger = logging.getLogger("reboot")
 
 class WorkOrderApplyView(LoginRequiredMixin, View):
     def get(self, request):
         forms = WorkOrderApplyForm()
+        logger.error('工单申请页')
         return render(request, 'order/workorder_apply.html', {'forms': forms})
     def post(self, request):
         print(request.POST)
@@ -48,6 +53,13 @@ class WorkOrderApplyView(LoginRequiredMixin, View):
                 # work_order.applicant = request.user
                 # work_order.status = 0
                 # work_order.save()
+                # send_mail(title,
+                #           order_contents,
+                #           settings.EMAIL_FROM,
+                #           ['413108892@qq.com'],
+                #           fail_silently=False, )
+                task_send_mail.delay(title,order_contents,settings.EMAIL_FROM,['413108892@qq.com'])
+
                 return HttpResponseRedirect(reverse('workorder:list'))
             except Exception as e:
                 print(e)
@@ -69,6 +81,9 @@ class WorkOrderListView(LoginRequiredMixin, PaginationMixin, ListView):
     paginate_by = 10
     keyword = ''
 
+
+
+
     def get_queryset(self):
         queryset = super(WorkOrderListView, self).get_queryset()
         # 只显示状态小于2，即申请和处理中的工单
@@ -82,6 +97,8 @@ class WorkOrderListView(LoginRequiredMixin, PaginationMixin, ListView):
             queryset = queryset.filter(Q(title__icontains = self.keyword)|
                                        Q(order_contents__icontains = self.keyword)|
                                        Q(result_desc__icontains=self.keyword))
+        hello.delay(self.request.user.username)
+        #print(self.request.user.username)
         return queryset
 
 
@@ -107,6 +124,7 @@ class WorkOrderListView(LoginRequiredMixin, PaginationMixin, ListView):
             res = {'code': 0, 'result': '取消成功'}
         except:
              res = {'code': 1, 'errmsg': '取消失败'}
+             logger.error("delete order  error: %s" % traceback.format_exc())
         return JsonResponse(res, safe=True)
 
 

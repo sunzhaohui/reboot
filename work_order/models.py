@@ -33,3 +33,15 @@ class WorkOrder(models.Model):
         verbose_name = 'workorder'
         verbose_name_plural = verbose_name
         ordering = ['-complete_time']
+
+
+
+class WorkOrder_Replay(models.Model):
+     workorder_id = models.ForeignKey(WorkOrder,verbose_name='工单标题',on_delete=models.CASCADE,related_name='workoder_title')
+     replay_contents = models.TextField(verbose_name='回复内容', blank=True, null=True)
+     replayer = models.ForeignKey(UserProfile, verbose_name='回复人', blank=True, null=True,on_delete=models.CASCADE, related_name='replayer')
+     replay_time = models.DateTimeField(auto_now_add=True, verbose_name='申请时间',null=True)
+
+
+
+

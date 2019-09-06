@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}发布进度{% endblock %}
+
+{% load tags %}
+{% block breadcrunb %}
+  <h1>
+   代码发布系统
+  </h1>
+  <ol class="breadcrumb">
+    <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+    <li class="active">发布进度</li>
+  </ol>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- Main row -->
+<div class="row">
+<!-- Left col -->
+<div class="col-md-12">
+
+<!-- 引入添加模态窗 -->
+{% include "deploy/consolemodel.html" %}
+
+<!-- TABLE: LATEST ORDERS -->
+<div class="box box-info">
+
+<div class="box-header with-border">
+  <h3 class="box-title">发布进度</h3>
+  <div class="box-tools pull-right">
+    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+    </button>
+    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+  </div>
+</div>
+<!-- /.box-header -->
+
+<div class="box-body">
+    {% if msg %}
+            <div class="alert alert-success alert-dismissable">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                {{ msg | safe }}
+            </div>
+        {% elif errmsg %}
+            <div class="alert alert-danger alert-dismissable">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                {{ errmsg | safe }}
+            </div>
+    {% endif %}
+
+     <div class="ibox-title">
+        <ul class="nav nav-pills nav-justified step step-arrow">
+            <li class="active">
+                <a>申请</a>
+            </li>
+            <li class="{% if deploy.status >= 1 %}active{% endif %}">
+                <a>审核</a>
+            </li>
+            <li class="{% if deploy.status >= 2%}active{% endif %}">
+                <a>上线</a>
+            </li>
+            <li class="{% if deploy.status == 4%}active {% endif %}">
+                <a>完成</a>
+            </li>
+        </ul>
+    </div>
+    <br>
+    <br>
+
+    <form method="post" action="" class="form-horizontal">
+        <div class="form-group"><label class="col-sm-2 control-label">项目名称：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name="name" value="{{ deploy.name }}">
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+        <div class="form-group"><label class="col-sm-2 control-label">发布版本：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="version" value="{{ deploy.version }}"/>
+          </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+        <div class="form-group"><label class="col-sm-2 control-label">版本描述：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="version_desc" value="{{ deploy.version_desc }}" />
+            </div>
+        </div>
+        <div class="hr-line-dashed"></div>
+
+        <div class="form-group"><label class="col-sm-2 control-label">申请时间：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="apply_time" value="{{ deploy.apply_time }}"/>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+        <div class="form-group"><label class="col-sm-2 control-label">审核人：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="reviewer" value="{{ deploy.reviewer.name_cn }}"/>
+            </div>
+        </div>
+        <div class="form-group"><label class="col-sm-2 control-label">审核时间：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="review_time" value="{{ deploy.review_time }}"/>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+        <div class="form-group"><label class="col-sm-2 control-label">上线人：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="handler" value="{{ deploy.handler.name_cn }}"/>
+            </div>
+        </div>
+        <div class="hr-line-dashed"></div>
+
+        <div class="form-group"><label class="col-sm-2 control-label">上线时间：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="deploy_time" value="{{ deploy.deploy_time }}"/>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+        <div class="form-group"><label class="col-sm-2 control-label">更新详情：</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" readonly="readonly" name ="update_detail" rows="3" placeholder="更新详情">{{ deploy.update_detail }}</textarea>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+      <div class="form-group"><label class="col-sm-2 control-label">当前状态：</label>
+            <div class="col-sm-8">
+                <input id="status" data-loading-text="deploy..." type="text" class="form-control" autocomplete="off" readonly="readonly" name ="status" value="{{ deploy.status }}{{ deploy.get_status_display }}"/>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+        <div class="form-group"><label class="col-sm-2 control-label">结束时间：</label>
+            <div class="col-sm-8">
+                <input type="text" class="form-control" readonly="readonly" name ="end_time" value="{{ deploy.end_time }}"/>
+            </div>
+        </div>
+        <div id="seelog" class="form-group"><label class="col-sm-2 control-label">日志：</label>
+            <div class="col-sm-8">
+                <a id="get_console" href="#">查看</a>
+{#                <input type="text" class="form-control" readonly="readonly" name ="build_url" value="查看"/>#}
+            </div>
+        </div>
+
+
+{#            <div id="seelog"  class="">#}
+{#                <button id="get_console" class="btn btn-sm btn-success pull-right" type="button" >查看日志</button>#}
+{#            </div>#}
+
+
+
+        <div class="form-group">
+            <div class="col-sm-4 col-sm-offset-2">
+
+                {% if 'qa' in  request_user_groups or 'sa' in request_user_groups  %}
+                {% if deploy.status == 0 %}
+{#                    <button  class="btn btn-primary" type="submit">审核</button>#}
+                    <button  id="commad_submit" data-loading-text="Building..."  class="btn btn-primary"  type="button" >审核</button>
+                {% elif deploy.status == 1 %}
+{#                    <button  class="btn btn-primary" type="submit">上线</button>#}
+                    <button  id="commad_submit"  data-loading-text="Building..."   class="btn btn-primary"  type="button" >上线</button>
+
+                {% elif deploy.status == 4 %}
+{#                    <button class="btn btn-primary" type="submit">返回</button>#}
+                    <button id="go_back" class="btn btn-primary" type="button" >返回</button>
+
+                {% endif %}
+            {% elif request.user.id == deploy.applicant_id %}
+                <button id="commad_submit2"  class="btn btn-primary" type="button">催一下</button>
+            {% else %}
+
+            {% endif %}
+
+
+
+            </div>
+        </div>
+
+    </form>
+
+</div>
+
+</div>
+</div>
+</div>
+
+{% endblock %}
+
+
+{% block js %}
+
+<script>
+
+
+
+let tags = '';
+$("#get_console").click(function(){
+
+
+    $.ajax({
+        type: "GET",
+        url: "{% url 'deploy:get_console' %}",
+        data: {"id":"{{ deploy.id }}","name": "{{ deploy.name }}","number":"{{ deploy.build_serial }}","url":"{{ deploy.build_url }}","status":"{{ deploy.status }}" },
+        success: function(res){
+            /*添加用户模态窗弹出*/
+            $("#consolemodal").modal("show");
+            $("#consolemodal input").val(res.url);
+            $("#consolemodal textarea").val(res.console);
+            console.log(res.url);
+         }
+    })
+});
+
+$("#closemodal").click(function () {
+    //window.location.reload();
+     $('#seelog').show();
+
+});
+
+function callback(res) {
+    return res.number
+
+}
+
+function getnextbuildnumber() {
+    $.ajax({
+         url: "{% url 'deploy:get_nextbuildnumber' %}",
+         data: {"id":"{{ deploy.id }}"},
+         async: false,//同步
+         success: function(res) {
+             next_number = res.number;
+            },
+
+        });
+    return next_number
+
+}
+
+function getbuildingstatus() {
+    //$('#status').button('loading');
+    $('#commad_submit').button('loading');
+
+    console.log('getgetbuildingstatus');
+
+    $.ajax({
+         type: "GET",
+         url: "{% url 'deploy:get_buidingstatus' %}",
+         data: {"id":"{{ deploy.id }}","number": next_number},
+
+         dataType: "json",
+
+         success: function(res){
+                     console.log(res)
+                     status = res.code
+                     if (status == 0 ){
+                         $('#status').button('reset');
+                          window.location.reload();
+
+                     }
+                     else if (status == 1) {
+                         $('#status').button('reset');
+
+                         window.location.reload();
+                     }
+                     else {
+                         console.log(res.status)
+                         setTimeout(getbuildingstatus,5*1000);
+                     }
+
+
+                 },
+                error: function(){
+                },
+        });
+
+}
+
+$('#commad_submit').click(function(){
+
+    var number = getnextbuildnumber();
+    console.log(number);
+
+
+    $.ajax({
+             type: "POST",
+             url: "",
+             data: {},
+             dataType: "json",
+             success: function(data){
+                 msg = data
+                 console.log(msg)
+             },
+            error: function(){
+            },
+	});
+    getbuildingstatus();
+
+});
+
+$('#go_back').click(function () {
+    window.history.back();
+})
+
+</script>
+
+{% endblock %}
