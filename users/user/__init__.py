@@ -1,7 +1,10 @@
 # _*_ encoding:utf-8 _*_
 __author__ = 'sunzhaohui'
 __date__ = '2019-08-05 17:20'
-
+import os,base64
+from django.core.files import File
+from django.core.files.base import ContentFile
+from io import BytesIO
 from django.conf import settings
 from django.shortcuts import render
 
@@ -14,7 +17,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
-from users.forms import UserProfileForm,UserUpdateForm,ModifyPasswordFor
+from users.forms import UserProfileForm,UserUpdateForm,ModifyPasswordFor,UserHeadportraitForm
 
 
 
@@ -84,16 +87,7 @@ class UserListView(LoginRequiredMixin,PermissionRequiredMixin,PaginationMixin,Li
         else:
             # 获取自定义的表单错误的两种常用方式
             print(_userForm.errors)
-            # <ul class="errorlist">
-            #   <li>phone<ul class="errorlist"><li>手机号码非法</li></ul></li>
-            #   <li>username<ul class="errorlist"><li>已存在一位使用该名字的用户。</li></ul></li>
-            # </ul>
             print(_userForm.errors.as_json())
-            # {"phone": [{"message": "\u624b\u673a\u53f7\u7801\u975e\u6cd5", "code": "invalid"}],
-            # "username": [{"message": "\u5df2\u5b4f7f\u7528\u8be5\u540d\u5b57\u7684\u7528\u6237\u3002",
-            # "code": "unique"}]}
-            # print(_userForm.errors['phone'][0])  # 手机号码非法
-            # print(_userForm.errors['username'][0])  # 已存在一位使用该名字的用户
             res = {'code': 1, 'errmsg': _userForm.errors.as_json()}
 
         return JsonResponse(res, safe=True)
@@ -111,6 +105,28 @@ class UserListView(LoginRequiredMixin,PermissionRequiredMixin,PaginationMixin,Li
             res = {'code': 1, 'errmsg': '删除用户失败'}
 
         return JsonResponse(res, safe=True)
+    def put(self,request,**kwargs):
+        data = QueryDict(request.body).dict()
+        id = data['id']
+        user_obj = self.model.objects.get(id=id)
+        try:
+
+            if user_obj.is_active:
+                user_obj.is_active = False
+                user_obj.save()
+                res = {'code': 0, 'result': '已禁用'}
+            else:
+                user_obj.is_active = True
+                user_obj.save()
+                res = {'code': 0, 'result': '已启用'}
+
+
+        except:
+        # print(id)
+            res = {'code': 1, 'errmsg': '状态更改失败'}
+        print(res)
+        return JsonResponse(res, safe=True)
+
 
 
 class UserDetailView(LoginRequiredMixin,PermissionRequiredMixin,DetailView):
@@ -271,7 +287,11 @@ class UserView(LoginRequiredMixin, View):
 
             return render(request, "users/user.html", {'user':user,'powerlist':powerlist,'roledict':roledict,'all_powerlist':list(set(all_powerlist))})
         def post(self,request):
+            print(request.FILES)
+            print(self.request.FILES.get('headportrait'))
+            print(request.FILES.get('headportrait'))
             data = QueryDict(self.request.body).dict()
+            print(data)
             id = data['id']
             user = UserProfile.objects.filter(id=id)
             print(data)
@@ -285,6 +305,38 @@ class UserView(LoginRequiredMixin, View):
 
 
             return render(request, settings.JUMP_PAGE, res)
+
+
+class UserHeadportrait(LoginRequiredMixin,View):
+    def post(self,request):
+        print('post1')
+        b64_data = request.POST.get('headportrait')
+        data = b64_data.split(',')[-1]
+        data = base64.b64decode(data)
+        #print(data)
+
+
+
+
+
+        try:
+            id = request.user.id
+            user_obj = UserProfile.objects.get(id=id)
+            img_obj = ContentFile(data,request.user.username+'.png')
+
+            user_obj.headportrait = img_obj
+            user_obj.save()
+            data = {'code': 0 }
+
+        except Exception as e:
+            print(e)
+            data = {
+                'code': 1,
+                'errmsg': str(e)
+            }
+
+        print(data)
+        return JsonResponse(data)
 
 
 class UserPasswordView(LoginRequiredMixin,View):

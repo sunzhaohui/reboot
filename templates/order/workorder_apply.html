@@ -84,11 +84,11 @@
 </div>
 {% endblock %}
 
-
+{% load static %}
 {% block css %}
 {#    <link rel="stylesheet" type="text/css" href="/static/markdown/css/bootstrap.min.css">#}
-	<link rel="stylesheet" type="text/css" href="/static/markdown/css/bootstrap-markdown.min.css">
-	<link rel="stylesheet" type="text/css" href="/static/markdown/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="{% static 'markdown/css/bootstrap-markdown.min.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'markdown/font-awesome/css/font-awesome.min.css' %}">
 
 {% endblock %}
 {% block js %}
@@ -102,11 +102,11 @@
 {#    <script src="/static/markdown_prever/js/marked.min.js"></script>#}
 
 {#    预览#}
-    <script src="/static/markdown/js/marked.js"></script>
+    <script src="{% static 'markdown/js/marked.js' %}"></script>
 {#    <script src="/static/markdown_prever/dist/js/bootstrap-markdown-editor.js"></script>#}
 
-    <script src="/static/markdown/js/bootstrap-markdown.js"></script>
-    <script src="/static/markdown/js/bootstrap-markdown.fr.js"></script>
+    <script src="{% static 'markdown/js/bootstrap-markdown.js' %}"></script>
+    <script src="{% static 'markdown/js/bootstrap-markdown.fr.js' %}"></script>
     <script type="text/javascript">
 
 

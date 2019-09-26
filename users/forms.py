@@ -14,6 +14,22 @@ class LoginForm(forms.Form):
     password = forms.CharField(required=True,min_length=6)
 
 
+##验证个人头像
+class UserHeadportraitForm(forms.ModelForm):
+
+
+    def clean_headportrait(self):
+        headportrait = self.cleaned_data['headportrait']
+        print(headportrait)
+
+        if headportrait.content_type not in ['image/jpeg','image/png','image/gif']:
+            print(forms.ValidationError('图片不合法',code='invalid'))
+            raise forms.ValidationError('图片不合法',code='invalid')
+        else:
+            print(headportrait)
+            return headportrait
+
+
 # 添加用户表单验证
 class UserProfileForm(forms.ModelForm):
     class Meta:

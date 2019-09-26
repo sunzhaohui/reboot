@@ -32,3 +32,36 @@ def markdown_to_html(body):
 
                       )
     return new_body
+
+@register.filter(name='markdown_to_text')
+def markdown_to_text(body):
+    new_body = markdown.markdown(body,
+                      extensions=[
+
+
+                      ]
+
+                      )
+    return new_body
+
+
+
+# 字节bytes转化kb\m\g
+@register.filter(name='formatSize')
+def formatSize(bytes):
+    try:
+        bytes = float(bytes)
+        kb = bytes / 1024
+    except:
+        print("传入的字节格式不对")
+        return "Error"
+
+    if kb >= 1024:
+        M = kb / 1024
+        if M >= 1024:
+            G = M / 1024
+            return "{}G".format(round(G,2))
+        else:
+            return "{}M".format(round(M,2))
+    else:
+        return "{}kb".format((round(kb,2)))

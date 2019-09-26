@@ -97,6 +97,11 @@
                       </ul>
                     </div>
                     <a class="btn btn-danger btn-sm del" data-id="{{ user.id }}" {% if user.username == 'admin' %} disabled {% endif %}>删除</a>
+                    {% if user.is_active %}
+                     <a class="btn btn-danger btn-sm operating_status" data-id="{{ user.id }}" {% if user.username == 'admin' %} disabled {% endif %}>禁用</a>
+                    {% else %}
+                      <a class="btn btn-success btn-sm operating_status" data-id="{{ user.id }}" {% if user.username == 'admin' %} disabled {% endif %}>启用</a>
+                    {% endif %}
                    </td>
                </tr>
             {% endfor %}
@@ -167,9 +172,10 @@ $("#submit_button").click(function(){
 
 /*删除用户*/
 $("tbody").on('click','.del',function(){
+
     if(confirm("是否确认删除？")){
         let that = this;
-        let id = $(this).attr('data-id')
+        let id = $(this).attr('data-id');
         $.ajax({
             url:"",
             type: "DELETE",
@@ -195,7 +201,45 @@ $("tbody").on('click','.del',function(){
 
     }  // end confirm
      return false
-})
+});
+
+
+/*更改状态*/
+$(".operating_status").click(function(){
+    let that = this;
+    let info = $(this).text();
+    if(confirm("是否确认"+info+"?")){
+        let that = this;
+        let id = $(this).attr('data-id');
+        $.ajax({
+            url:"",
+            type: "PUT",
+            data: {"id":id},
+            datatype: "json",
+            success: function(res){
+                console.log(res)
+                if (res.code ==0){
+                    swal({
+                        "title": "操作成功",
+                         "text": res.result,
+                         "type": "success"
+                    }, function () {
+                         setTimeout(function () {
+                            window.location.reload();
+                         }, 50);
+                     })
+                }else{
+                    swal("操作失败", res.errmsg, "error")
+                }
+            }
+        })
+
+    }  // end confirm
+     return false
+});
+
+
+
 
 
 </script>

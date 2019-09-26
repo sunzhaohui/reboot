@@ -22,7 +22,7 @@ class WorkOrderApplyForm(forms.Form):
     # assign = forms.ChoiceField(widget=forms.Select(attrs={'class': 'assign-to form-control'}, choices=assign_sa))
     assign_id = forms.ChoiceField(widget=forms.Select(attrs={'class': 'assign-to form-control'}, choices=assign_sa))
 
-    orderfiles = forms.FileField(required=False)
+    orderfiles = forms.FileField(required=False,widget=forms.FileInput(attrs={'multiple':''}))
 
     # 知识点： 指派给用户的时候，如果用户更新了 指派的下拉列表也得更新
     def __init__(self, *args, **kwargs):
@@ -31,3 +31,10 @@ class WorkOrderApplyForm(forms.Form):
 
 class WorkOrderResultForm(forms.Form):
     result_desc = forms.CharField(widget=forms.Textarea(), required=True)
+
+class WorkOrderReplyForm(forms.Form):
+    reply_contents = forms.CharField(widget=forms.Textarea(), required=True)
+
+
+class WorkOrderUPloadForm(forms.Form):
+    pass

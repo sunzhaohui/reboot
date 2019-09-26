@@ -120,17 +120,20 @@ class LoginView(View):
         res = {"code":0}
         #通过form 验证数据格式是否合法
         login_form = LoginForm(request.POST)
-        print('login_form:{}'.format(login_form))
+        #print('login_form:{}'.format(login_form))
         if login_form.is_valid():
             data = login_form.cleaned_data
-
+            print(data)
 
 
             user = authenticate(**data)
+            print(user)
+
             if user is not None:
                 if user.is_active:
                     login(request,user)  # 默认为当前登录用户创建session
                     res['next_url'] = '/'
+
                 else:
                     res['code'] =1
                     res['errmsg'] = '用户被禁用'
@@ -140,6 +143,7 @@ class LoginView(View):
         else:
             res['code'] = 1
             res['errmsg'] = '用户名或密码不合法'
+        print(res)
         return JsonResponse(res,safe=True)
 
 

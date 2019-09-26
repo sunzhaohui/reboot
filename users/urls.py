@@ -6,7 +6,7 @@ from django.urls import path,re_path
 
 from . import views
 from .group import RoleListView,RolePowerView
-from .user import  UserListView,UserDetailView,UserGroupPowerView,ModifyPasswordView,UserView,UserPasswordView
+from .user import  UserListView,UserDetailView,UserGroupPowerView,ModifyPasswordView,UserView,UserPasswordView,UserHeadportrait
 from .power import PowerListView,PowerView
 
 
@@ -37,4 +37,5 @@ urlpatterns = [
     # http://ip:8000/logout/
     path("logout/", views.LogoutView.as_view(), name='logout'),
     #re_path('hello/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})/',views.index,name='index'),
+    path('userheadportrait/',UserHeadportrait.as_view(),name='userheadportrait'),
     ]

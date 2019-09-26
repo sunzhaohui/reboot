@@ -23,8 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '2$7%v9#_r1yo1f&&0mwqf9sr2mct2-6#$+krd-4urdiw*=4d9*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
-DEBUG = False
+# DEBUG = True
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -139,14 +139,31 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+if DEBUG:
+    STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)
+
 # 在哪找——静态文件存放位置,STATIC_ROOT必须是绝对路径
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+else:
+    STATIC_ROOT = ''
+
 
 
 # 用访问的URL
 MEDIA_URL = '/media/'
 # 文件存储的位置例如model中定义的文件存储位置为 reboot/media/orderfiles/2019/06/aa.txt
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# 2.5MB - 2621440
+# 5MB - 5242880
+# 10MB - 10485760
+# 20MB - 20971520
+# 50MB - 5242880
+# 100MB 104857600
+# 250MB - 214958080
+# 500MB - 429916160
+MAX_UPLOAD_SIZE = 5242880
 
 
 # GITLAB
@@ -265,3 +282,12 @@ print(CELERYD_LOG_FILE)
 #CELERYBEAT_LOG_FILE = BASE_DIR + "/logs/celery/beat.log"     # beat log路径
 CELERYBEAT_LOG_FILE = os.path.join(BASE_DIR,"logs/celery/beat.log")
 print(CELERYBEAT_LOG_FILE)
+
+
+
+
+
+PAGINATION_SETTINGS = {'SHOW_FIRST_PAGE_WHEN_INVALID': True}
+# 无效页面时，显示第一页而不是404页面
+
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.AllowAllUsersModelBackend']

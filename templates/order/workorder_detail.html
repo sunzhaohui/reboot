@@ -24,15 +24,17 @@
 <div class="box-header with-border">
   <h3 class="box-title">工单详情</h3>
   <div class="box-tools pull-right">
-    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
-    </button>
-    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+{% if workorder.status < 2 %}
+ <button id="close_workorder_button" class="btn btn-primary" type="button">关闭工单</button>
+{% elif workorder.status == 2 or workorder.status == 4 %}
+       <button id="open_workorder_button" class="btn btn-primary" type="button">重新打开工单</button>
+{% endif %}
   </div>
 </div>
 <!-- /.box-header -->
 
 <div class="box-body">
-    <form method="post" action="" class="form-horizontal">
+{#    <form method="post" action="" class="form-horizontal">#}
         {% if msg %}
             <div class="alert alert-success alert-dismissable">
                 <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
@@ -44,31 +46,266 @@
                 {{ errmsg | safe }}
             </div>
         {% endif %}
-        <pre>{{ workorder.title }}</pre>
-        <pre>{{ workorder.order_contents | markdown_to_html|safe }}</pre>
-        {% if workorder.orderfiles %}查看附件：<a href="http://{{ request.get_host }}/media/{{ workorder.orderfiles }}">{{ workorder.orderfiles |orderfile_name}} </a>{% endif %}
-        <div class="hr-line-dashed"></div>
-    
-        {% if workorder.status == 1 %}
-        <div class="form-group">
-            <div class="col-sm-12">
-                <textarea  name="result_desc" class="form-control" rows="5" placeholder="处理结果"></textarea>
-            </div>
+        <div class="mailbox-read-info">
+                <h3>{{ workorder.title }}</h3>
+                <h5>申请人: {{ workorder.applicant }}
+                  <span class="mailbox-read-time pull-right">{{ workorder.apply_time }}</span>
+                </h5>
         </div>
-        <div class="hr-line-dashed"></div>
+        <div class="mailbox-read-message">
+                    {{ workorder.order_contents|markdown_to_html|safe }}
+        </div>
+
+        <div class="box-footer">
+            {% if workorder.files %}
+              <ul class="mailbox-attachments clearfix">
+
+                {% for f in workorder.files.all %}
+                <li>
+                  {% if f.filetype == 'image/jpeg' or f.filetype == 'image/png' or f.filetype == 'image/gif' %}
+                    <span class="mailbox-attachment-icon has-img"><img src="/media/{{ f.file }}" alt="Attachment"></span>
+                    <div class="mailbox-attachment-info">
+                        <a href="http://{{ request.get_host }}/media/{{ f.file }}" class="mailbox-attachment-name"><i class="fa  fa-camera"></i> {{ f.file.name|orderfile_name}}</a>
+                        <span class="mailbox-attachment-size">
+                            {{ f.file.size |formatSize}}
+                            {% if request.user.id == f.fileowner_id or 'work_order.delete_workorder_file' in request.user.get_all_permissions %}
+                              <a  class="btn btn-default btn-xs pull-right delete_file" data-id="{{ f.id }}"><i class="fa fa-remove"></i></a>
+                            {% endif %}
+
+                        </span>
+
+                    </div>
+                {% elif f.filetype == 'application/pdf' %}
+                    <span class="mailbox-attachment-icon"><i class="fa fa-file-pdf-o"></i></span>
+                    <div class="mailbox-attachment-info">
+                        <a href="http://{{ request.get_host }}/media/{{ f.file }}" class="mailbox-attachment-name"><i class="fa  fa-paperclip"></i> {{ f.file.name|orderfile_name}}</a>
+                        <span class="mailbox-attachment-size">
+                            {{ f.file.size |formatSize}}
+                            {% if request.user.id == f.fileowner_id or 'work_order.delete_workorder_file' in request.user.get_all_permissions %}
+                              <a  class="btn btn-default btn-xs pull-right delete_file" data-id="{{ f.id }}"><i class="fa fa-remove"></i></a>
+                            {% endif %}
+                        </span>
+
+                    </div>
+                {% elif f.filetype == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' %}
+                    <span class="mailbox-attachment-icon"><i class="fa fa-file-excel-o"></i></span>
+                    <div class="mailbox-attachment-info">
+                        <a href="http://{{ request.get_host }}/media/{{ f.file }}" class="mailbox-attachment-name"><i class="fa  fa-paperclip"></i> {{ f.file.name|orderfile_name}}</a>
+                        <span class="mailbox-attachment-size">
+                            {{ f.file.size|formatSize }}
+                            {% if request.user.id == f.fileowner_id or 'work_order.delete_workorder_file' in request.user.get_all_permissions %}
+                              <a  class="btn btn-default btn-xs pull-right delete_file" data-id="{{ f.id }}"><i class="fa fa-remove"></i></a>
+                            {% endif %}
+                        </span>
+
+                    </div>
+                 {% elif f.filetype == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' %}
+                    <span class="mailbox-attachment-icon"><i class="fa fa-file-word-o"></i></span>
+                    <div class="mailbox-attachment-info">
+                        <a href="http://{{ request.get_host }}/media/{{ f.file }}" class="mailbox-attachment-name"><i class="fa  fa-paperclip"></i> {{ f.file.name|orderfile_name}}</a>
+                        <span class="mailbox-attachment-size">
+                            {{ f.file.size|formatSize }}
+                            {% if request.user.id == f.fileowner_id or 'work_order.delete_workorder_file' in request.user.get_all_permissions %}
+                              <a  class="btn btn-default btn-xs pull-right delete_file" data-id="{{ f.id }}"><i class="fa fa-remove"></i></a>
+                            {% endif %}
+                        </span>
+                    </div>
+                 {% elif f.filetype == 'text/plain' %}
+                    <span class="mailbox-attachment-icon"><i class="fa fa-file-text-o"></i></span>
+                    <div class="mailbox-attachment-info">
+                        <a href="http://{{ request.get_host }}/media/{{ f.file }}" class="mailbox-attachment-name"><i class="fa  fa-paperclip"></i> {{ f.file.name|orderfile_name}}</a>
+                        <span class="mailbox-attachment-size">
+                            {{ f.file.size|formatSize }}
+                            {% if request.user.id == f.fileowner_id or 'work_order.delete_workorder_file' in request.user.get_all_permissions %}
+                              <a  class="btn btn-default btn-xs pull-right delete_file" data-id="{{ f.id }}"><i class="fa fa-remove"></i></a>
+                            {% endif %}
+                        </span>
+                    </div>
+                  {% elif f.filetype == 'application/zip' %}
+                    <span class="mailbox-attachment-icon"><i class="fa fa-file-zip-o"></i></span>
+                    <div class="mailbox-attachment-info">
+                        <a href="http://{{ request.get_host }}/media/{{ f.file }}" class="mailbox-attachment-name"><i class="fa  fa-paperclip"></i> {{ f.file.name|orderfile_name}}</a>
+                        <span class="mailbox-attachment-size">
+                            {{ f.file.size|formatSize }}
+                            {% if request.user.id == f.fileowner_id or 'work_order.delete_workorder_file' in request.user.get_all_permissions %}
+                              <a  class="btn btn-default btn-xs pull-right delete_file" data-id="{{ f.id }}"><i class="fa fa-remove"></i></a>
+                            {% endif %}
+                        </span>
+                    </div>
+                  {% else %}
+                      <span class="mailbox-attachment-icon"><i class="fa fa-file-o"></i></span>
+                    <div class="mailbox-attachment-info">
+                        <a href="http://{{ request.get_host }}/media/{{ f.file }}" class="mailbox-attachment-name"><i class="fa  fa-paperclip"></i> {{ f.file.name|orderfile_name}}</a>
+                        <span class="mailbox-attachment-size">
+                            {{ f.file.size|formatSize }}
+                            {% if request.user.id == f.fileowner_id or 'work_order.delete_workorder_file' in request.user.get_all_permissions %}
+                              <a  class="btn btn-default btn-xs pull-right delete_file" data-id="{{ f.id }}"><i class="fa fa-remove"></i></a>
+                            {% endif %}
+                        </span>
+                    </div>
+                {% endif %}
+
+                </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+        </div>
+        {% if workorder.status < 2  %}
+        <div class="form-group">
+                <button class="btn btn-default btn-file" id="js-upload-photos">
+                  <i class="fa fa-paperclip"></i> 上传附件(按需)
+                </button>
+                <input id="fileupload" type="file" name="file" multiple style="display: none;" data-url="">
+                <p class="help-block">Max. {{ MAX_UPLOAD_SIZE|formatSize }}</p>
+        </div>
+
         {% endif %}
 
-        <div class="form-group">
-            <div class="col-sm-4">
-                {% if workorder.status == 0 %}
-                    <button id="submit_button" class="btn btn-primary" type="submit">接受</button>
-                {% elif workorder.status == 1 %}
-                    <button id="submit_button" class="btn btn-primary" type="submit">完成</button>
-                {% endif %}
-                <button id="reset_button" class="btn btn-white" type="reset">取消</button>
+
+{#        <input id="fileupload" type="file" name="file" multiple data-url="">#}
+
+        {# ####这里是页面差别，显示上传的进度条,It’s a Bootstrap modal #}
+        <div class="modal fade" id="modal-progress" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Uploading...</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%;">0%</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </form>
+
+
+
+{#        {% if workorder.orderfiles %}查看附件：<a href="http://{{ request.get_host }}/media/{{ workorder.orderfiles }}">{{ workorder.orderfiles |orderfile_name}} </a>{% endif %}#}
+
+
+        <div class="hr-line-dashed"></div>
+
+        <div class="box box-primary direct-chat direct-chat-primary ">
+
+            <div class="box-header with-border">
+              <h3 class="box-title">工单回复</h3>
+
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+              <!-- Conversations are loaded here -->
+{#              <div class="direct-chat-messages">#}
+                <div >
+
+                <!-- Message. Default to the left -->
+                {% for reply in reply_list %}
+
+                    {% if reply.replyer != request.user %}
+                        <div class="direct-chat-msg">
+                            <div class="direct-chat-info clearfix">
+                                <span class="direct-chat-name pull-left">{{ reply.replyer }}</span>
+                                <span class="direct-chat-timestamp pull-right">{{ reply.reply_time }}</span>
+                            </div>
+                            <!-- /.direct-chat-info -->
+                            <img class="direct-chat-img" src="/media/{{ reply.replyer.headportrait }}" alt="Message User Image"><!-- /.direct-chat-img -->
+                            <div class="direct-chat-text">
+                            {% if reply.type == 0 %}
+
+                            {{ reply.reply_contents }}
+
+                            {% else %}
+
+                                {{ reply.reply_contents | markdown_to_html|safe }}
+
+
+                            {% endif %}
+                        </div>
+                  <!-- /.direct-chat-text -->
+                </div>
+                <!-- /.direct-chat-msg -->
+                 {% else %}
+                <!-- Message to the right -->
+                <div class="direct-chat-msg right">
+                  <div class="direct-chat-info clearfix">
+                    <span class="direct-chat-name pull-right">{{ reply.replyer }}</span>
+                    <span class="direct-chat-timestamp pull-left">{{ reply.reply_time }}</span>
+                  </div>
+                  <!-- /.direct-chat-info -->
+                  <img class="direct-chat-img" src="/media/{{ reply.replyer.headportrait }}" alt="Message User Image"><!-- /.direct-chat-img -->
+                  <div class="direct-chat-text">
+                      {% if reply.type == 0 %}
+                        {{ reply.reply_contents }}
+                    {% else %}
+                        {{ reply.reply_contents | markdown_to_html|safe }}
+                     {% endif %}
+                  </div>
+                  <!-- /.direct-chat-text -->
+                </div>
+                    {% endif %}
+                <!-- /.direct-chat-msg -->
+                {% endfor  %}
+              </div>
+              <!--/.direct-chat-messages-->
+
+
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer">
+{#              <form action="" method="post">#}
+                  {% if workorder.status == 0 and 'work_order.accept_workorder' in request.user.get_all_permissions %}
+                    <button id="accept_button" class="btn btn-primary" type="submit">接受</button>
+                      <button id="reset_button" class="btn btn-white" type="reset">返回</button>
+
+
+                  {% elif workorder.status == 1 %}
+
+                        <div class="form-group">
+
+                              <input type="radio" id="check_text_input"  name="reply_type"  value='0' checked="checked" />文本&nbsp;
+                              <input type='radio' id='check_markdown_input'  name='reply_type' value='1' >Markdown&nbsp;
+
+
+
+                             <div class="col-sm-12" id="reply_contents_div">
+                                <textarea  id="reply_contents" name="reply_contents" class="form-control "  rows="8" placeholder="请输入.."></textarea>
+                             </div>
+{#                          <div class="col-sm-12" id="reply_contents_text_div">#}
+{##}
+{#                              <textarea  id="reply_contents_text" name="reply_contents" class="form-control "  rows="8" placeholder="请输入.."></textarea>#}
+{#                          </div>#}
+{##}
+{#                          <div class="col-sm-12" id="reply_contents_markdown_div" style="display: none;">#}
+{#                              <textarea  id="reply_contents_markdown" name="reply_contents" class="form-control md-input" data-provide="markdown" data-iconlibrary="fa"  rows="8" placeholder="请输入.."></textarea>#}
+{##}
+{#                          </div>#}
+
+                          <div class="col-sm-4">
+
+                                <button id="reply_button" class="btn btn-primary" type="button">回复</button>
+                                <button id="reset_button" class="btn btn-white" type="reset">返回</button>
+                          </div>
+                  {% else %}
+                          <div class="col-sm-4">
+                                <button id="reset_button" class="btn btn-white" type="reset">返回</button>
+                          </div>
+
+                  {% endif %}
+
+
+
+                        </div>
+
+    {#              </form>#}
+
+
+
+            </div>
+            <!-- /.box-footer-->
+          </div>
+
+
 </div>
 
 </div>
@@ -77,16 +314,37 @@
 
 {% endblock %}
 
+{% load static %}
 {% block css %}
 
-    <link rel="stylesheet" type="text/css" href="/static/highlight/styles/default.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'highlight/styles/default.css' %}">
+    	<link rel="stylesheet" type="text/css" href="{% static 'markdown/css/bootstrap-markdown.min.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'markdown/font-awesome/css/font-awesome.min.css' %}">
 
 {% endblock %}
 
 {% block js %}
 
 
-    <script src="/static/highlight/highlight.pack.js"></script>
+    <script src="{% static 'highlight/highlight.pack.js' %}"></script>
+    <script src="{% static 'markdown/js/highlight.js' %}"></script>
+
+
+{# JQUERY FILE UPLOAD SCRIPTS #}
+  <script src="{% static 'js/jquery-file-upload/vendor/jquery.ui.widget.js' %}"></script>
+  <script src="{% static 'js/jquery-file-upload/jquery.iframe-transport.js' %}"></script>
+  <script src="{% static 'js/jquery-file-upload/jquery.fileupload.js' %}"></script>
+
+    {#    预览#}
+    <script src="{% static 'markdown/js/marked.js' %}"></script>
+{#    <script src="/static/markdown_prever/dist/js/bootstrap-markdown-editor.js"></script>#}
+
+    <script src="{% static 'markdown/js/bootstrap-markdown.js' %}"></script>
+    <script src="{% static 'markdown/js/bootstrap-markdown.fr.js' %}"></script>
+
+  {# PHOTOS PAGE SCRIPTS #}
+{#  <script src="{% static 'photos/js/basic-upload.js' %}"></script>#}
+
 
 <script>
 //初始化高亮实例
@@ -94,6 +352,247 @@ hljs.initHighlightingOnLoad();
 
     $('#reset_button').click(function(){
        window.history.back();
-    })
+    });
+
+
+$('#close_workorder_button').click(function (){
+       var action = 'close';
+        chang_status(action);
+    });
+
+$('#open_workorder_button').click(function (){
+       var action = 'open';
+        chang_status(action);
+    });
+
+
+$('#accept_button').click(function (){
+       var action = 'accept';
+        chang_status(action);
+    });
+
+$('#reply_button').click(function (){
+       var action = 'reply';
+       var reply_type = $('input:radio[name="reply_type"]:checked').val();
+        reply_function(action,reply_type);
+    });
+
+
+
+
+
+function chang_status(action) {
+
+         $.ajax({
+            type: "POST",
+            url: "",
+            data:{"action": action,
+                "reply_contents": $('#reply_contents').val()
+            },
+            success: function(data){
+                console.log(data);
+                if (data['code'] == 0){
+
+                    location.reload();
+               }else{
+                    swal("Error", data['errmsg'], "error")
+               }
+         }
+        });
+     };
+
+
+
+function reply_function(action,reply_type) {
+
+         $.ajax({
+            type: "POST",
+            url: "",
+            data:{"action": action,
+                "reply_type":reply_type,
+                "reply_contents": $('#reply_contents').val()
+            },
+            success: function(data){
+                console.log(data);
+                if (data['code'] == 0){
+
+                    location.reload();
+               }else{
+                    swal("Error", data['errmsg'], "error")
+               }
+         }
+        });
+     };
+
+
+
+
+
+  /* 1. OPEN THE FILE EXPLORER WINDOW */
+$(function () {
+    $("#js-upload-photos").click(function () {
+        $("#fileupload").click();
+    });
+
+    /* 2. INITIALIZE THE FILE UPLOAD COMPONENT */
+    $("#fileupload").fileupload({
+        dataType: 'json',
+        sequentialUploads: true,  /* 1. SEND THE FILES ONE BY ONE 这个属性指示该组件一次发送一个文件*/
+        start: function (e) {   /* 2. WHEN THE UPLOADING PROCESS STARTS, SHOW THE MODAL */
+            $("#modal-progress").modal("show");
+        },
+
+        stop: function (e) {  /* 3. WHEN THE UPLOADING PROCESS FINALIZE, HIDE THE MODAL */
+            $("#modal-progress").modal("hide");
+        },
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            var strProgress = progress + "%";
+            $(".progress-bar").css({"width": strProgress});
+            $(".progress-bar").text(strProgress);
+        },
+
+
+        done: function (e, data) {  /* 3. PROCESS THE RESPONSE FROM THE SERVER */
+
+            if (data.result.code === 0) {
+
+                location.reload();
+
+            } else {
+                swal("Error", data.result.errmsg, "error");
+            }
+        }
+    });
+
+});
+
+
+
+
+
+
+$(".delete_file").click(function(){
+    if(confirm("是否确认删除？")){
+        let that = this;
+        let id = $(this).attr('data-id');
+        console.log(id);
+        $.ajax({
+            url:"",
+            type: "DELETE",
+            data: {"id":id},
+            datatype: "json",
+            success: function(res){
+                console.log(res)
+                if (res.code ==0){
+                    swal({
+                        "title": "删除成功",
+                         "text": res.result,
+                         "type": "success"
+                    }, function () {
+                         setTimeout(function () {
+                            window.location.reload();
+                         }, 50);
+                     })
+                }else{
+                    swal("操作失败", res.errmsg, "error")
+                }
+            }
+        })
+    }  // end confirm
+     return false
+});
+
+
+
+
+
+
+
+
+
+
+$(function () {
+
+
+$('input:radio[name="reply_type"]').change(function(){
+
+            var v = $(this).val();
+
+            if (v =="0"){
+                 $("#reply_contents_div").append($("#reply_contents"));
+                 $("#reply_contents_div .md-editor").hide();
+                 if($("#reply_contents_div .md-header .btn-group:last button").attr("aria-pressed") == "true"){
+                     $("#reply_contents_div .md-header .btn-group:last button").click();
+                 }
+                 {#$("#reply_contents_div .md-preview").remove();#}
+                 {#$("#reply_contents_div .md-header").remove();#}
+                 {#$("#reply_contents_div .md-fullscreen-controls").remove();#}
+                 $("#reply_contents").removeClass("md-input");
+                 $("#reply_contents").removeAttr("data-provide");
+                 $("#reply_contents").removeAttr("data-iconlibrary");
+
+
+
+                $("#reply_contents").show();
+            } else {
+
+                    $("#reply_contents_div .md-editor").show();
+
+                    {#$("#reply_contents_div .md-header .btn-group:last button").attr("aria-pressed", "false");#}
+                    {#$("#reply_contents_div .md-header .btn-group:last button").removeClass("active");#}
+                    {#$("#reply_contents_div .md-header .btn-group:last button").removeClass("focus");#}
+                    $("#reply_contents_div .md-editor").append($("#reply_contents"));
+
+                    $("#reply_contents").addClass("md-input");
+                    $("#reply_contents").attr("data-provide","markdown");
+                    $("#reply_contents").attr("data-iconlibrary","fa");
+
+
+
+            (function ($) {
+              $.fn.markdown.messages.zh = {
+                'Bold': "粗体",
+                'Italic': "斜体",
+                'Heading': "标题",
+                'URL/Link': "链接",
+                'Image': "图片",
+                'List': "列表",
+                'Unordered List': "无序列表",
+                'Ordered List': "有序列表",
+                'Code': "代码",
+                'Quote': "引用",
+                'Preview': "预览",
+                'strong text': "粗体",
+                'emphasized text': "强调",
+                'heading text': "标题",
+                'enter link description here': "输入链接说明",
+                'Insert Hyperlink': "URL地址",
+                'enter image description here': "输入图片说明",
+                'Insert Image Hyperlink': "图片URL地址",
+                'enter image title here': "在这里输入图片标题",
+                'list text here': "这里是列表文本",
+                'code text here': "这里输入代码",
+                'quote here': "这里输入引用文本"
+              };
+            }(jQuery));
+
+            $("#reply_contents").markdown({
+    	            autofocus: false,
+                    savable:false,
+    	            language: 'zh',
+
+                });
+
+
+
+
+            };
+
+
+});
+
+});
+
 </script>
 {% endblock %}

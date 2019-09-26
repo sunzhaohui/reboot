@@ -36,4 +36,9 @@ celery -A reboot beat -l info
 celery -A reboot flower --address=0.0.0.0 --port=5555
 ```
 
+#2019年09月16日18:41:23
+```
+pip3.6 install pillow
+```
+
 
