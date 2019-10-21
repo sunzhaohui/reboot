@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'work_order',
     'deploy',
      'djcelery',     # celery自带的app，非常强大
+    'notifications', #第三方站内消息通知
+    'notice', # 自建app，用户消息通知未读和已读
 ]
 
 MIDDLEWARE = [

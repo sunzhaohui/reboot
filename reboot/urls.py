@@ -20,6 +20,7 @@ from reboot.settings import MEDIA_ROOT
 from reboot.settings import STATIC_ROOT,DEBUG
 from django.views.static import serve
 
+import notifications.urls
 from django.conf.urls.static import static
 
 
@@ -31,5 +32,8 @@ urlpatterns = [
     path("deploy/", include('deploy.urls'),name="deploy"),
     re_path("media/(?P<path>.*)",  serve, {"document_root": MEDIA_ROOT}),
     re_path("static/(?P<path>.*)", serve, {"document_root": STATIC_ROOT}),
+    path('inbox/notifications/', include(notifications.urls, namespace='notifications')),
+    path('notice/', include('notice.urls', namespace='notice')),
+
 
 ]

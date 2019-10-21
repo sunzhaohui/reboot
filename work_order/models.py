@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import UserProfile
 import uuid
+from django.urls import reverse
 # Create your models here.
 
 def file_upload_to(instance,filename):
@@ -48,6 +49,9 @@ class WorkOrder(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_detail_url(self):
+        return  reverse('workorder:detail', kwargs={'pk': self.id})
 
     class Meta:
         verbose_name = 'workorder'

@@ -6,6 +6,9 @@
 <head>
 
   {% load static %}
+  <!-- 引入notifications的模板标签 -->
+    {% load notifications_tags %}
+    {% notifications_unread as unread_count %}
 
   <!-- 母版定义好最基础的资源，保证骨架没问题，各个子页面可以根据需要在block中重写 -->
 
@@ -67,26 +70,39 @@
   <div class="navbar-custom-menu">
     <!-- 用户退出及个人信息部分 -->
     <ul class="nav navbar-nav">
-{#    <li class="dropdown notifications-menu open">#}
-{#            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">#}
-{#              <i class="fa fa-bell-o"></i>#}
-{#              <span class="label label-warning">10</span>#}
-{#            </a>#}
-{#            <ul class="dropdown-menu">#}
-{#              <li class="header">You have 10 notifications</li>#}
-{#              <li>#}
-{#                <!-- inner menu: contains the actual data -->#}
-{#                <ul class="menu">#}
-{#                  <li>#}
-{#                    <a href="#">#}
-{#                      <i class="fa fa-users text-aqua"></i> 5 new members joined today#}
-{#                    </a>#}
-{#                  </li>#}
-{#                </ul>#}
-{#              </li>#}
-{#              <li class="footer"><a href="#">View all</a></li>#}
-{#            </ul>#}
-{#          </li>#}
+    <li class="dropdown notifications-menu ">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+              <i class="fa fa-bell-o"></i>
+                 {% if unread_count > 0  %}
+                <span class="label label-warning">{{ unread_count }}</span>
+                {% endif %}
+            </a>
+            <ul class="dropdown-menu">
+
+              <li class="header">共有 {{ unread_count }} 条未读通知</li>
+              <li>
+                <!-- inner menu: contains the actual data -->
+                <ul class="menu">
+                    {% for notice in request.user.notifications.unread %}
+                    <li class="list-group-item" id="notice_link">
+                    <a href="{% url "notice:update" %}?workorder_id={{ notice.target.id }}&notice_id={{ notice.id }}"
+                       target="_blank"
+                    >
+                    <span style="color: #5897fb;">
+                        {{ notice.actor }}
+                    </span>
+                        在 <span style="color: #01a252;">{{ notice.target }}</span> {{ notice.verb }}。
+                    </a>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ notice.timestamp|date:"Y/m/d H:i" }}
+                </li>
+                    {% endfor %}
+                </ul>
+              </li>
+              <li class="footer"><a href="{% url "notice:all" %}">查看全部</a></li>
+
+            </ul>
+          </li>
+
 
       <li class="dropdown user user-menu">
 

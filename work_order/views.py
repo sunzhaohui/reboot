@@ -18,6 +18,7 @@ from .models import WorkOrder,WorkOrder_Reply,WorkOrder_File
 from .forms import WorkOrderApplyForm,WorkOrderResultForm,WorkOrderReplyForm
 from django.conf import settings
 
+from notifications.signals import notify
 
 
 #task
@@ -231,10 +232,14 @@ class WorkOrderDetailView(LoginRequiredMixin, DetailView):
                     data['replyer_id'] = request.user.id
                     data['type'] = int(reply_type)
                     print(data)
-                    WorkOrder_Reply.objects.create(**data)
+                    wro=WorkOrder_Reply.objects.create(**data)
                     data = {
                         'code': 0,
                     }
+                    if request.user == work_order.applicant:
+                        notify.send(request.user,recipient=work_order.handler,verb='回复了你',target=work_order,action_object=wro)
+                    elif request.user == work_order.handler:
+                        notify.send(request.user,recipient=work_order.applicant,verb='回复了你',target=work_order,action_object=wro)
                 else:
                     data = {'code':1,'errmsg':'err'}
             #关闭
