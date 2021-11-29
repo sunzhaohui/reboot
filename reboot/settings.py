@@ -264,10 +264,10 @@ LOGGING = {
 # 邮件
 EMAIL_HOST = "smtp.exmail.qq.com"
 EMAIL_PORT = 465
-EMAIL_HOST_USER = "sa-notice@yuanxin-inc.com"
-EMAIL_HOST_PASSWORD = "Miao13456"
+EMAIL_HOST_USER = "zhangsan@qq.com"
+EMAIL_HOST_PASSWORD = "xxxxx"
 EMAIL_USE_SSL = True
-EMAIL_FROM = "sa-notice@yuanxin-inc.com"
+EMAIL_FROM = "zhangsan@qq.com"
 
 
 
